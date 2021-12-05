@@ -7,11 +7,9 @@ This Bspline fortran code is taken and adapted
 
 The code is based on Bspline interpolation on a regular grid. The dependencies are eliminated from the original version. The code is organized according to the dimension of the data to be interpolated (i.e. 1D-3D). The code is originally written in a serial form and the goal here is to accelerate it with the use of OpenACC offloading.                                                 
 
-The code can be compiled using a Makefile
+## Subroutines
 
-## Subroutine interface
-
-The core routines for the subroutine interface are:
+The core routines for the the Bspline code are:
 
 ```Fortran
 
@@ -26,7 +24,7 @@ subroutine db2val(xval,yval,idx,idy,tx,ty,nx,ny,kx,ky,bcoef,f,iflag,inbvx,inbvy,
 !f(x,y,z)
 subroutine db3ink(x,nx,y,ny,z,nz,fcn,kx,ky,kz,iknot,tx,ty,tz,bcoef,iflag)
 subroutine db3val(xval,yval,zval,idx,idy,idz,tx,ty,tz,nx,ny,nz,kx,ky,kz,bcoef,f,iflag,inbvx,inbvy,inbvz,iloy,iloz,w2,w1,w0,extrap)
-
+```
 
 The ```ink``` routines compute the interpolant coefficients, and the ```val``` routines evalute the interpolant at the specified value of each coordinate.
 

@@ -9,37 +9,22 @@
 
     implicit none
 
-    integer(ip),parameter :: nx = 50     !! number of points in x
-    integer(ip),parameter :: ny = 50     !! number of points in y
-    integer(ip),parameter :: nx_new = 512     !! nbr of interpolated x-points
-    integer(ip),parameter :: ny_new = 512     !! nbr of interpolated y-points
-    integer(ip),parameter :: kx = 4     !! order in x
-    integer(ip),parameter :: ky = 4     !! order in y
-
-    integer(ip),parameter :: iknot = 0  !! automatically select the knots
-
-    real(wp), parameter   :: x_min=0._wp, x_max=10._wp !! range og x-grid
-    real(wp), parameter   :: y_min=0._wp, y_max=10._wp !! range og y-grid
-
-    real(wp) :: x(nx),y(ny),tx(nx+kx),ty(ny+ky)
-    real(wp) :: fcn_2d(nx,ny)
-
-    real(wp),dimension(3*kx)                     :: w1_1d
-    real(wp),dimension(ky)                       :: w1_2d
-    real(wp),dimension(3*max(kx,ky))             :: w2_2d
+    integer(ip)   :: nx,ny,nx_new,ny_new,kx,ky,iknot
+    real(wp)      :: x_min,x_max,y_min,y_max
 
     real(wp) :: tol,dx,dy,dx_new,dy_new,int_2d,int_2d_new, &
                 sum_x
-    real(wp),dimension(6) :: val,tru,err,errmax
+    real(wp) :: val,tru,err,errmax
     logical :: fail
     integer(ip) :: i,j,k,l,m,n,idx,idy,idz,idq,idr,ids
-    integer(ip),dimension(6) :: iflag
-    integer(ip) :: inbvx,inbvy,inbvz,inbvq,inbvr,inbvs
-    integer(ip) :: iloy,iloz,iloq,ilor,ilos
+    integer(ip) :: iflag(2)
+    integer(ip) :: inbvx,inbvy
+    integer(ip) :: iloy
     integer ::     count_rate, count_max,count,t_start,t_final
     real    ::     time_s
 
-    real(wp), allocatable :: xout(:),yout(:),fout(:,:)
+    real(wp), allocatable :: x(:),y(:),xout(:),yout(:),fout(:,:), &
+                             tx(:),ty(:),w1_2d(:),w2_2d(:),fcn_2d(:,:)
 
     call system_clock(count_max=count_max, count_rate=count_rate)
 
@@ -49,12 +34,18 @@
     print*, "-----------2D-Bspline Interpolation--------------"
     print*, ""
 
+!reading parameter of the grid and the order of B-spile
+    call read_input(nx,ny,nx_new,ny_new,kx,ky,iknot,&
+                            x_min,x_max,y_min,y_max)
     fail = .false.
     tol = 100 * epsilon(1.0_wp)
     idx = 0
     idy = 0
 
-    allocate(xout(nx_new)); allocate(yout(ny_new));allocate(fout(nx_new,ny_new))
+    allocate(x(nx)); allocate(y(ny)); allocate(fcn_2d(nx,ny))
+    allocate(xout(nx_new)); allocate(yout(ny_new)); allocate(fout(nx_new,ny_new))
+    allocate(tx(nx+kx)); allocate(ty(ny+ky))
+    allocate(w1_2d(ky)); allocate(w2_2d(3*max(kx,ky)))
 
      dx = (x_max-x_min)/real(nx-1,wp); dy = (y_max-y_min)/real(ny-1,wp)
 !x-grid
@@ -107,31 +98,33 @@
     ! compute max error at interpolation points
 
      errmax = 0.0_wp
+!$acc data copyin(xout,yout,tx,ty,fcn_2d) copyout(fout)
+!$acc parallel
+!$acc loop collapse(2) private(val,iflag,w1_2d,w2_2d,tru) reduction(max:errmax)  
      do i=1,size(xout)
        do j=1,size(yout)
           call db2val(xout(i),yout(j),idx,idy,&
-                     tx,ty,nx,ny,kx,ky,fcn_2d,val(2),iflag(2),&
+                     tx,ty,nx,ny,kx,ky,fcn_2d,val,iflag(2),&
                      inbvx,inbvy,iloy,&
                      w1_2d,w2_2d)
 
-                     tru(2)    = f2(x(i),y(j))
-                     err(2)    = abs(tru(2)-val(2))
-                     errmax(2) = max(err(2),errmax(2))
+                     tru    = f2(xout(i),yout(j))
+                     errmax = max(abs(tru-val),errmax)
                     
-          fout(i,j) = val(2)
+          fout(i,j) = val
        enddo
      end do
+!$acc end parallel
+!$acc end data
 
     ! check max error against tolerance
-    do i=2,2
-        write(*,*) i,'D: max error:', errmax(i)
-!        if (errmax(i) >= tol) then
+        write(*,*) '2D: max error:', errmax
+!        if (errmax >= tol) then
 !            write(*,*)  ' ** test failed ** '
 !        else
 !            write(*,*)  ' ** test passed ** '
 !        end if
         write(*,*) ''
-    end do
 
 !Evaluate the integral
 !without interpolation
@@ -187,6 +180,7 @@
         end function f1
 
         real(wp) function f2(x,y) !! 2d test function
+!$acc routine seq
         implicit none
         real(wp) x,y,piov2
         !piov2 = 2.0_wp * atan(1.0_wp)

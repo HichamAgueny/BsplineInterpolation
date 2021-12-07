@@ -1,9 +1,9 @@
 FC = nvfortran
-FCFLAGS = -O3
+FCFLAGS = -O3 -fast -acc -Minfo=accel
 
 EXEC = bspline_test-2d.exe
 
-OBJECTS = bspline_kinds_module.o bspline_sub_module.o \
+OBJECTS = bspline_kinds_module.o read_input.o bspline_sub_module.o \
           bspline_module.o bspline_test.o
 MODULES = bspline_kinds_module.mod bspline_sub_module.mod \
           bspline_module.mod

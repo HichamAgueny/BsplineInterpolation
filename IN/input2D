@@ -1,0 +1,12 @@
+grid parameters
+
+50 50 0     !nx, ny, nz: nbr of original points
+512 512 0   !nx_new, ny_new, nz_new: nbr of interpolated points
+      
+0.0 10.0   !x_min, x_max
+0.0 10.0   !y_min, y_max
+0.0 0.0    !z_min, z_max
+
+B-spline parameters
+4 4 0     !kx, ky, kz: B-spline order   
+0         !knot initialization

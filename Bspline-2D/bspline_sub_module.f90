@@ -92,10 +92,6 @@
     !main routines:
     public :: db1ink, db1val, db1sqad, db1fqad
     public :: db2ink, db2val
-    public :: db3ink, db3val
-    public :: db4ink, db4val
-    public :: db5ink, db5val
-    public :: db6ink, db6val
 
     public :: get_status_message
 
@@ -692,6 +688,7 @@
 
     pure subroutine db2val(xval,yval,idx,idy,tx,ty,nx,ny,kx,ky,bcoef,f,iflag,inbvx,inbvy,iloy,w1,w0,extrap)
 
+!$acc routine seq
     implicit none
 
     integer(ip),intent(in)               :: idx      !! \(x\) derivative of piecewise polynomial to evaluate.
@@ -760,6 +757,7 @@
 !  This is called by the various `db*val` routines.
 
     pure function check_value(x,t,i,extrap) result(iflag)
+!$acc routine seq
 
     implicit none
 
@@ -1749,6 +1747,7 @@
 !  * Jacob Williams, 2/24/2015 : extensive refactoring of CMLIB routine.
 
     pure subroutine dbvalu(t,a,n,k,ideriv,x,inbv,work,iflag,val,extrap)
+!$acc routine seq
 
     implicit none
 
@@ -1934,6 +1933,7 @@
 
     pure subroutine dintrv(xt,lxt,xx,ilo,ileft,mflag,extrap)
 
+!$acc routine seq
     implicit none
 
     integer(ip),intent(in)             :: lxt    !! length of the `xt` vector
@@ -3059,6 +3059,8 @@
 
     pure function get_temp_x_for_extrap(x,tmin,tmax,extrap) result(xt)
 
+!$acc routine seq
+
     implicit none
 
     real(wp),intent(in) :: x    !! variable value
@@ -3127,46 +3129,14 @@
     case(  8_ip); msg='Error in db*ink: ky out of range'
     case(  9_ip); msg='Error in db*ink: y not strictly increasing'
     case( 10_ip); msg='Error in db*ink: ty not non-decreasing'
-    case( 11_ip); msg='Error in db*ink: nz out of range'
-    case( 12_ip); msg='Error in db*ink: kz out of range'
-    case( 13_ip); msg='Error in db*ink: z not strictly increasing'
-    case( 14_ip); msg='Error in db*ink: tz not non-decreasing'
-    case( 15_ip); msg='Error in db*ink: nq out of range'
-    case( 16_ip); msg='Error in db*ink: kq out of range'
-    case( 17_ip); msg='Error in db*ink: q not strictly increasing'
-    case( 18_ip); msg='Error in db*ink: tq not non-decreasing'
-    case( 19_ip); msg='Error in db*ink: nr out of range'
-    case( 20_ip); msg='Error in db*ink: kr out of range'
-    case( 21_ip); msg='Error in db*ink: r not strictly increasing'
-    case( 22_ip); msg='Error in db*ink: tr not non-decreasing'
-    case( 23_ip); msg='Error in db*ink: ns out of range'
-    case( 24_ip); msg='Error in db*ink: ks out of range'
-    case( 25_ip); msg='Error in db*ink: s not strictly increasing'
-    case( 26_ip); msg='Error in db*ink: ts not non-decreasing'
     case(700_ip); msg='Error in db*ink: size(x) /= size(fcn,1)'
     case(701_ip); msg='Error in db*ink: size(y) /= size(fcn,2)'
-    case(702_ip); msg='Error in db*ink: size(z) /= size(fcn,3)'
-    case(703_ip); msg='Error in db*ink: size(q) /= size(fcn,4)'
-    case(704_ip); msg='Error in db*ink: size(r) /= size(fcn,5)'
-    case(705_ip); msg='Error in db*ink: size(s) /= size(fcn,6)'
     case(706_ip); msg='Error in db*ink: size(x) /= nx'
     case(707_ip); msg='Error in db*ink: size(y) /= ny'
-    case(708_ip); msg='Error in db*ink: size(z) /= nz'
-    case(709_ip); msg='Error in db*ink: size(q) /= nq'
-    case(710_ip); msg='Error in db*ink: size(r) /= nr'
-    case(711_ip); msg='Error in db*ink: size(s) /= ns'
     case(712_ip); msg='Error in db*ink: size(tx) /= nx+kx'
     case(713_ip); msg='Error in db*ink: size(ty) /= ny+ky'
-    case(714_ip); msg='Error in db*ink: size(tz) /= nz+kz'
-    case(715_ip); msg='Error in db*ink: size(tq) /= nq+kq'
-    case(716_ip); msg='Error in db*ink: size(tr) /= nr+kr'
-    case(717_ip); msg='Error in db*ink: size(ts) /= ns+ks'
     case(800_ip); msg='Error in db*ink: size(x) /= size(bcoef,1)'
     case(801_ip); msg='Error in db*ink: size(y) /= size(bcoef,2)'
-    case(802_ip); msg='Error in db*ink: size(z) /= size(bcoef,3)'
-    case(803_ip); msg='Error in db*ink: size(q) /= size(bcoef,4)'
-    case(804_ip); msg='Error in db*ink: size(r) /= size(bcoef,5)'
-    case(805_ip); msg='Error in db*ink: size(s) /= size(bcoef,6)'
 
     case(806_ip); msg='Error in dbint4: currently, only k=4 can be used'
 
@@ -3194,17 +3164,9 @@
 
     case(501_ip); msg='Error in initialize_*d_specify_knots: tx is not the correct size (kx+nx)'
     case(502_ip); msg='Error in initialize_*d_specify_knots: ty is not the correct size (ky+ny)'
-    case(503_ip); msg='Error in initialize_*d_specify_knots: tz is not the correct size (kz+nz)'
-    case(504_ip); msg='Error in initialize_*d_specify_knots: tq is not the correct size (kq+nq)'
-    case(505_ip); msg='Error in initialize_*d_specify_knots: tr is not the correct size (kr+nr)'
-    case(506_ip); msg='Error in initialize_*d_specify_knots: ts is not the correct size (ks+ns)'
 
     case(601_ip); msg='Error in db*val: x value out of bounds'
     case(602_ip); msg='Error in db*val: y value out of bounds'
-    case(603_ip); msg='Error in db*val: z value out of bounds'
-    case(604_ip); msg='Error in db*val: q value out of bounds'
-    case(605_ip); msg='Error in db*val: r value out of bounds'
-    case(606_ip); msg='Error in db*val: s value out of bounds'
 
     case(901_ip); msg='Error in dbsqad: k does not satisfy 1<=k<=20'
     case(902_ip); msg='Error in dbsqad: n does not satisfy n>=k'

@@ -1,11 +1,11 @@
-B-Spline-based Interpolation on a Regular Grid
+Porting to GPU with OpenACC: B-Spline-based Interpolation
 
 # Brief description
 
 This Bspline fortran code is taken and adapted
-[from](http://jacobwilliams.github.io/bspline-fortran/)
+from [here](http://jacobwilliams.github.io/bspline-fortran/)
 
-The code is based on Bspline interpolation on a regular grid. The dependencies are eliminated from the original version. The code is organized according to the dimension of the data to be interpolated (i.e. 1D-3D). The code is originally written in a serial form and the goal here is to accelerate it with the use of OpenACC offloading.                                                 
+The code is based on Bspline interpolation on a uniform grid. The dependencies are eliminated from the original version. The code is organized according to the dimension of the data to be interpolated (i.e. 1D-3D). The code is originally written in a serial form and the goal here is to accelerate it with the use of OpenACC offloading.                                                 
 
 ## Subroutines
 
